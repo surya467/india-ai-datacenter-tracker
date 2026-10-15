@@ -5,7 +5,6 @@ import {
   BarChart3,
   Search,
   Radio,
-  Github,
   Zap,
   Cpu
 } from "lucide-react";
