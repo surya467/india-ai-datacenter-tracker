@@ -1,22 +1,19 @@
 import React, { useState, useMemo } from "react";
 import { DATA_CENTERS } from "./data/dataCenters";
-import { fetchOverpassDataCenters } from "./services/apiService";
 import Navbar from "./components/Navbar";
 import Filters from "./components/Filters";
-import MapComponent from "./components/MapComponent";
+import IndiaSvgMap from "./components/IndiaSvgMap";
 import FacilityCard from "./components/FacilityCard";
 import DataCenterDrawer from "./components/DataCenterDrawer";
 import Dashboard from "./components/Dashboard";
 import ApiHubModal from "./components/ApiHubModal";
 import {
-  Globe,
-  Radio,
   ArrowUpDown,
-  Zap,
-  Droplets,
-  Info,
+  BookOpen,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck,
+  Server
 } from "lucide-react";
 
 export default function App() {
@@ -29,13 +26,6 @@ export default function App() {
   const [selectedStatus, setSelectedStatus] = useState("All Statuses");
   const [minCapacity, setMinCapacity] = useState(0);
   const [sortBy, setSortBy] = useState("capacity"); // "capacity" | "water" | "name"
-
-  // OpenStreetMap Overpass state
-  const [osmNodes, setOsmNodes] = useState([]);
-  const [isLoadingOsm, setIsLoadingOsm] = useState(false);
-  const [showOsmLayer, setShowOsmLayer] = useState(false);
-
-  // API Documentation Modal
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
 
   // Filter & Search Logic
@@ -47,9 +37,9 @@ export default function App() {
         const matchesName = dc.name.toLowerCase().includes(query);
         const matchesOp = dc.operator.toLowerCase().includes(query);
         const matchesCity = dc.city.toLowerCase().includes(query);
-        const matchesState = dc.state.toLowerCase().includes(query);
+        const matchesState = dc.state?.toLowerCase().includes(query);
         const matchesHardware = dc.aiHardware?.toLowerCase().includes(query);
-        const matchesCooling = dc.coolingType.toLowerCase().includes(query);
+        const matchesCooling = dc.coolingType?.toLowerCase().includes(query);
         if (!matchesName && !matchesOp && !matchesCity && !matchesState && !matchesHardware && !matchesCooling) {
           return false;
         }
@@ -97,7 +87,7 @@ export default function App() {
     });
   }, [dataCenters, searchQuery, selectedCity, selectedCooling, selectedStatus, minCapacity, sortBy]);
 
-  // Aggregate stats
+  // Sector Aggregate Totals
   const totalCapacityMW = useMemo(() => {
     return dataCenters.reduce((acc, curr) => acc + (curr.totalFacilityITMW || curr.itCapacityMW || 0), 0);
   }, [dataCenters]);
@@ -105,30 +95,6 @@ export default function App() {
   const totalWaterMLD = useMemo(() => {
     return (dataCenters.reduce((acc, curr) => acc + (curr.dailyWaterLiters || 0), 0) / 1000000).toFixed(1);
   }, [dataCenters]);
-
-  // Handle OSM Overpass API Fetch
-  const handleFetchOsm = async () => {
-    if (showOsmLayer) {
-      setShowOsmLayer(false);
-      return;
-    }
-
-    if (osmNodes.length > 0) {
-      setShowOsmLayer(true);
-      return;
-    }
-
-    setIsLoadingOsm(true);
-    try {
-      const nodes = await fetchOverpassDataCenters();
-      setOsmNodes(nodes);
-      setShowOsmLayer(true);
-    } catch (err) {
-      alert("Notice: OpenStreetMap Overpass API is currently busy. Falling back to primary verified AI facility catalog.");
-    } finally {
-      setIsLoadingOsm(false);
-    }
-  };
 
   const handleResetFilters = () => {
     setSelectedCity("All Cities");
@@ -139,55 +105,52 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090a0f] text-slate-200 flex flex-col font-sans selection:bg-blue-500/20 selection:text-blue-200">
-      {/* Top Navbar */}
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
+      {/* Top Minimal Navbar */}
       <Navbar
         currentView={currentView}
         setCurrentView={setCurrentView}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
-        onRefreshOsm={handleFetchOsm}
-        isLoadingOsm={isLoadingOsm}
-        showOsmLayer={showOsmLayer}
-        setShowOsmLayer={setShowOsmLayer}
+        onOpenApiModal={() => setIsApiModalOpen(true)}
         totalCapacityMW={totalCapacityMW}
         totalWaterMLD={totalWaterMLD}
       />
 
-      {/* Main Content Area */}
+      {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-4">
-        {/* Clean Context Banner */}
-        <div className="bg-[#10121a] border border-zinc-800 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+        {/* Verification Status Banner */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0"></span>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-semibold text-xs text-white">
-                  Operational Baseline: 1,575 MW Total Sector Stock • 38,231 IndiaAI GPUs
+                <span className="font-semibold text-xs text-slate-900">
+                  National Baseline: 1,575 MW Total Operational IT • 38,231 IndiaAI GPUs
                 </span>
-                <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700">
+                <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   PIB Verified (March 2026)
                 </span>
               </div>
-              <p className="text-[11px] text-zinc-400 mt-0.5">
-                Dynamic cooling evaporation rates and operational PUE are calculated in real-time via Open-Meteo atmospheric telemetry.
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Accurate vector map of India drawn from official Wikipedia geographic geometry with zero external tile dependencies.
               </p>
             </div>
           </div>
 
           <button
             onClick={() => setIsApiModalOpen(true)}
-            className="text-xs px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 font-sans flex items-center gap-1.5 transition-colors shrink-0"
+            className="text-xs px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-medium flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer shadow-2xs"
           >
-            <Globe className="w-3.5 h-3.5 text-zinc-400" />
-            <span>APIs & Data Sources</span>
+            <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+            <span>Methodology & Citations</span>
           </button>
         </div>
 
-        {/* VIEW 1: MAP & FACILITIES EXPLORER */}
+        {/* VIEW 1: VECTOR MAP & FACILITY EXPLORER */}
         {currentView === "map" && (
-          <div className="space-y-3.5">
-            {/* Filter Controls */}
+          <div className="space-y-4">
+            {/* Filters Bar */}
             <Filters
               selectedCity={selectedCity}
               setSelectedCity={setSelectedCity}
@@ -201,38 +164,38 @@ export default function App() {
               totalResults={filteredDataCenters.length}
             />
 
-            {/* Split Map & Facility List Grid */}
+            {/* Split Vector Map & Cards Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-auto lg:h-[720px]">
-              {/* Map Column (7 Cols on desktop) */}
-              <div className="lg:col-span-7 h-[450px] lg:h-full">
-                <MapComponent
+              {/* Vector SVG Map of India (7 Cols) */}
+              <div className="lg:col-span-7 h-[500px] lg:h-full">
+                <IndiaSvgMap
                   dataCenters={filteredDataCenters}
                   selectedDc={selectedDc}
                   onSelectDc={setSelectedDc}
-                  osmNodes={osmNodes}
-                  showOsmLayer={showOsmLayer}
+                  selectedCity={selectedCity}
+                  setSelectedCity={setSelectedCity}
                 />
               </div>
 
-              {/* Facility Cards List Column (5 Cols on desktop) */}
-              <div className="lg:col-span-5 h-[500px] lg:h-full flex flex-col bg-[#10121a] rounded-2xl border border-zinc-800 overflow-hidden shadow-sm">
+              {/* Mapped Facilities Column (5 Cols) */}
+              <div className="lg:col-span-5 h-[500px] lg:h-full flex flex-col bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
                 {/* List Header & Sorting */}
-                <div className="p-3 border-b border-zinc-800 bg-[#131520] flex items-center justify-between shrink-0">
+                <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-xs text-white">
+                    <h3 className="font-bold text-xs text-slate-900">
                       Mapped Facilities
                     </h3>
-                    <span className="text-xs text-zinc-400 font-mono">
+                    <span className="text-xs text-slate-500 font-semibold">
                       ({filteredDataCenters.length})
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5 text-xs">
-                    <ArrowUpDown className="w-3 h-3 text-zinc-400" />
+                    <ArrowUpDown className="w-3 h-3 text-slate-500" />
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="bg-zinc-900 border border-zinc-700/80 text-zinc-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-blue-500 font-sans"
+                      className="bg-white border border-slate-200 text-slate-800 rounded px-2 py-1 text-[11px] focus:outline-none focus:border-blue-600 font-medium"
                     >
                       <option value="capacity">Sort: IT Power (MW)</option>
                       <option value="water">Sort: Water (MLD)</option>
@@ -241,10 +204,10 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Cards Scrollable Container */}
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {/* Cards Scroll Container */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
                   {filteredDataCenters.length === 0 ? (
-                    <div className="py-16 text-center text-zinc-500 text-xs font-sans">
+                    <div className="py-20 text-center text-slate-400 text-xs">
                       No data centers match the chosen filters. Try resetting filters.
                     </div>
                   ) : (
@@ -269,14 +232,14 @@ export default function App() {
         )}
       </main>
 
-      {/* Slide-out Data Center Drawer / Modal */}
+      {/* Slide-out Detailed Profile Drawer */}
       <DataCenterDrawer dc={selectedDc} onClose={() => setSelectedDc(null)} />
 
-      {/* API Intelligence Hub Modal */}
+      {/* Methodology & Citations Modal */}
       <ApiHubModal isOpen={isApiModalOpen} onClose={() => setIsApiModalOpen(false)} />
 
-      {/* Clean Minimal Footer */}
-      <footer className="border-t border-zinc-800/80 bg-[#090a0f] py-4 px-6 text-center text-xs text-zinc-500 font-sans mt-8">
+      {/* Minimal Footer */}
+      <footer className="border-t border-slate-200 bg-white py-4 px-6 text-center text-xs text-slate-500 mt-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>
             India AI Infrastructure & Environmental Telemetry Tracker
@@ -284,11 +247,11 @@ export default function App() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsApiModalOpen(true)}
-              className="text-zinc-400 hover:text-white transition-colors"
+              className="text-slate-600 hover:text-blue-600 font-medium transition-colors cursor-pointer"
             >
-              Sources & Methodology
+              Citations & Methodology
             </button>
-            <span>•</span>
+            <span className="text-slate-300">•</span>
             <span>PIB & JLL Mid-2026 Baseline</span>
           </div>
         </div>

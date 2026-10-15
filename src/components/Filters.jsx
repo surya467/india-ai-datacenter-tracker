@@ -40,10 +40,10 @@ export default function Filters({
   const statuses = ["All Statuses", "Operational", "Expansion Phase", "Under Construction"];
 
   return (
-    <div className="bg-[#10121a] p-3 rounded-xl border border-zinc-800 text-xs flex flex-wrap items-center gap-2.5 justify-between shadow-sm">
+    <div className="bg-white p-3 rounded-xl border border-slate-200 text-xs flex flex-wrap items-center gap-2.5 justify-between shadow-xs">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-[11px] mr-1">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-zinc-400" />
+        <div className="flex items-center gap-1.5 text-slate-500 font-medium text-[11px] mr-1">
+          <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
           <span>Filter:</span>
         </div>
 
@@ -51,7 +51,7 @@ export default function Filters({
         <select
           value={selectedCity}
           onChange={(e) => setSelectedCity(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700/80 text-zinc-200 rounded-md px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 font-sans"
+          className="bg-slate-50 border border-slate-200 text-slate-800 rounded-md px-2.5 py-1 text-xs focus:outline-none focus:border-blue-600 focus:bg-white font-medium"
         >
           {cities.map((c) => (
             <option key={c} value={c}>
@@ -64,7 +64,7 @@ export default function Filters({
         <select
           value={selectedCooling}
           onChange={(e) => setSelectedCooling(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700/80 text-zinc-200 rounded-md px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 font-sans"
+          className="bg-slate-50 border border-slate-200 text-slate-800 rounded-md px-2.5 py-1 text-xs focus:outline-none focus:border-blue-600 focus:bg-white font-medium"
         >
           {coolingTypes.map((c) => (
             <option key={c} value={c}>
@@ -77,7 +77,7 @@ export default function Filters({
         <select
           value={selectedStatus}
           onChange={(e) => setSelectedStatus(e.target.value)}
-          className="bg-zinc-900 border border-zinc-700/80 text-zinc-200 rounded-md px-2.5 py-1 text-xs focus:outline-none focus:border-blue-500 font-sans"
+          className="bg-slate-50 border border-slate-200 text-slate-800 rounded-md px-2.5 py-1 text-xs focus:outline-none focus:border-blue-600 focus:bg-white font-medium"
         >
           {statuses.map((s) => (
             <option key={s} value={s}>
@@ -87,8 +87,8 @@ export default function Filters({
         </select>
 
         {/* Min Capacity Slider */}
-        <div className="flex items-center gap-2 bg-zinc-900 px-2.5 py-1 rounded-md border border-zinc-700/80 font-mono text-[11px]">
-          <span className="text-zinc-400">Min MW:</span>
+        <div className="flex items-center gap-2 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200 text-[11px] font-medium">
+          <span className="text-slate-500">Min Load:</span>
           <input
             type="range"
             min="0"
@@ -96,20 +96,20 @@ export default function Filters({
             step="10"
             value={minCapacity}
             onChange={(e) => setMinCapacity(Number(e.target.value))}
-            className="w-16 accent-blue-500 cursor-pointer h-1.5"
+            className="w-16 accent-blue-600 cursor-pointer h-1.5"
           />
-          <span className="font-semibold text-zinc-200 w-8">{minCapacity} MW</span>
+          <span className="font-semibold text-slate-900 w-8">{minCapacity} MW</span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <span className="text-[11px] font-mono text-zinc-400">
-          Showing <strong className="text-white">{totalResults}</strong> facilities
+        <span className="text-[11px] text-slate-500">
+          Showing <strong className="text-slate-900 font-semibold">{totalResults}</strong> facilities
         </span>
 
         <button
           onClick={onReset}
-          className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+          className="text-[11px] text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors font-medium cursor-pointer"
           title="Reset all filters"
         >
           <RotateCcw className="w-3 h-3" />
